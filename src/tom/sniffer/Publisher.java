@@ -22,11 +22,11 @@ public class Publisher {
 		// TODO Auto-generated method stub
 		File file = new File("/home/luong/Documents/BlackipNgoc");
 		MongoClient mongo = new MongoClient("localhost", 27017);
-    	MongoDatabase database = mongo.getDatabase("BlackIP");
+    	MongoDatabase database = mongo.getDatabase("DNSParser");
     	// database.createCollection("sampleCollection");
     	//System.out.println("Collection created successfully");
-    	MongoCollection<Document> collection = database.getCollection("Collection_1");
-    	MongoCollection<Document> indexID = database.getCollection("indexID");
+    	MongoCollection<Document> collection = database.getCollection("Collection_BlackIP");
+    	//MongoCollection<Document> indexID = database.getCollection("Collection_indexBlackID");
 		try {
 			Scanner scanner = new Scanner(file);
 			while (scanner.hasNextLine()) {
@@ -35,11 +35,11 @@ public class Publisher {
 				//
 				/// push black ip to db
 				ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-				int maxID = BlackIP.getmaxID();
+				int maxID = (int) collection.count();
 				String json = ow.writeValueAsString(new BlackIP(++maxID, ip));
 				collection.insertOne(Document.parse(json));
 				//update index 
-				indexID.updateOne(Filters.eq("maxID", maxID - 1), Updates.set("maxID", maxID)); 
+				//indexID.updateOne(Filters.eq("maxBlackID", maxID - 1), Updates.set("maxBlackID", maxID)); 
 			}
 		} 
 		catch (FileNotFoundException e) {

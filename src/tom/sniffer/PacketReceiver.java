@@ -2,6 +2,7 @@ package tom.sniffer;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,21 +24,21 @@ public class PacketReceiver {
     	//
     	
     	MongoClient mongo = new MongoClient("localhost", 27017);
-    	MongoDatabase database = mongo.getDatabase("BlackIP");
+    	MongoDatabase database = mongo.getDatabase("DNSParser");
     	// database.createCollection("sampleCollection");
     	//System.out.println("Collection created successfully");
-    	MongoCollection<Document> collection = database.getCollection("Collection_1");
-    	MongoCollection<Document> FoundIP = database.getCollection("FoundIP");
-    	MongoCollection<Document> indexID = database.getCollection("indexID");
+    	MongoCollection<Document> collection = database.getCollection("Collection_BlackIP");
+    	MongoCollection<Document> FoundIP = database.getCollection("Collection_FoundIP");
+    	//MongoCollection<Document> indexFoundID = database.getCollection("Collection_indexFoundID");
   
     	//
     	InputStreamReader isReader = new InputStreamReader(System.in);
 		BufferedReader bufReader = new BufferedReader(isReader);
 		File log = new File("/home/luong/JavaProjects/CSDL/src/tom/sniffer/log");
-		System.out.println(log.exists());
+		//System.out.println(log.exists());
 		//FileWriter  fo= new FileWriter(System.out);
-		JSONObject jo= new JSONObject("{Hello World:123}");
-		System.out.println(jo.toString()+"WTF");
+		//JSONObject jo= new JSONObject("{Hello World:123}");
+		//System.out.println(jo.toString()+"WTF");
 		//List<JSONObject> mlist = new ArrayList<JSONObject>();
 		while(true){
     		try {
@@ -55,19 +56,24 @@ public class PacketReceiver {
         				Document myDoc = collection.find(Filters.eq("ip", ip)).first();
         				//System.out.println(count+"???");
         				if (myDoc == null) {
-        					System.out.println(ip+"NO");
+        					//System.out.println(ip+"NO");
         				}
             			if (myDoc != null) {
             				System.out.println(ip);
-            				ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-            				int maxID = BlackIP.getmaxID();
-            				String json = ow.writeValueAsString(new BlackIP(++maxID, ip));
-            				FoundIP.insertOne(Document.parse(json));
-            				// update index
-            				indexID.updateOne(Filters.eq("maxID", maxID - 1), Updates.set("maxID", maxID)); 
+            				Document checkDoc = null;
+            				checkDoc = FoundIP.find(Filters.eq("ip", ip)).first();
             				
-            				//FoundIP.insertOne(new Document("ip",ip));
-            				System.out.println("ADDED " + ip + " to FOUNDIP Colecction!!");
+            				if (checkDoc == null) {
+	            				ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+	            				int maxFoundID = (int) FoundIP.count();
+	            				String json = ow.writeValueAsString(new BlackIP(++maxFoundID, ip));
+	            				FoundIP.insertOne(Document.parse(json));
+	            				// update index
+	            				//indexFoundID.updateOne(Filters.eq("maxFoundID", maxFoundID - 1), 
+	            				//		Updates.set("maxFoundID", maxFoundID)); 
+	            				//FoundIP.insertOne(new Document("ip",ip));
+	            				System.out.println("ADDED " + ip + " to FOUNDIP Colecction!!");
+            				}
             			}
         			}
         		}
